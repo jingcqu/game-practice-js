@@ -1,0 +1,56 @@
+.banner {
+    margin: auto;
+    text-align: center;
+    font-size: 36px;
+    font-family: "Times New Roman", Times, serif;
+}
+
+.container {
+    width: 100%;
+    text-align: center
+}
+
+.lore {
+    display: block;
+    width: 25%;
+    text-align: center;
+    margin: auto;
+    font-style: italic;
+    background-color: aliceblue;
+    border: 50px;
+    float: left;
+    margin-left: 25%;
+}
+
+canvas {
+    background-color: aliceblue;
+    margin: auto;
+}
+
+body {
+    background-image: url('../assets/minimumeffort.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.parent {
+    width: 100%;
+    text-align: center
+}
+
+.instructions {
+    display: block;
+    width: 25%;
+    text-align: center;
+    margin: auto;
+    font-style: italic;
+    background-color: aliceblue;
+    border: 50px;
+    float: right;
+    margin-right: 25%;
+}
+
+body {
+    width: 100%;
+    text-align: center;
+}
