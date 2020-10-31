@@ -5,23 +5,44 @@
     <title>Run from the block - Practice Game</title>
     <link rel="stylesheet" href="./css/styles.css">
 
+    <script src="./src/main.js"></script>
 
 </head>
 
-<body onload="startGame()">
-    <script src="./src/main.js"></script>
-    <h1>Get away!!</h1>
-    <div class="container">
+<body onload="makeBoard()">
+    <div class="control-panel">
+        <div>
+            <button class="placeBricks" onclick="placeBrickButton()">Place Bricks</button>
+            <button class="placeChar" onclick="placeCharButton()">Place Character</button>
+            <button class="placeEvil" onclick="placeEvilButton()">Place Evil</button>
+            <select>
+                <option value="dijkstra">Dijkstra</option>
+                <option value="grassFire">Grass Fire</option>
+                <option value="bfs">Bredth First Search</option>
+                <option value="dfs">Depth First Search</option>
+                <option value="astar">Astar</option>
+            </select>
+            <button class="startButton" onclick="startButton()">Start</button>
+            <button class="viewPathing" onclick="viewPathButton()">View Pathing </button>
+            <script src="./src/eventHandlers.js"></script>
+        </div>
     </div>
     <div class="parent">
         <div class="lore child">
-            <h2>What is BLOCK</h2>
+            <h2>Book of Horizon: Assimilation of BLOCK</h2>
             <p>
-                The Block is all powerful, the block is all knowing, the block is hollow and the block is empty.<br> The block is angry, the block is ignorant and the block ... <br> The Block is evil. <br> When humanity perceive the block; they fear it,
-                they're excited by it, and they wish it away. <br> However, unlike the evils familiar, the block does not hide in the shadows but in the mundane.<br> Humanity was, is, and forever will be in reach of the block and they will forever turn
-                their gaze away.<br> As it's evil slowly creeps: praying that fate has it that the block saves it's evils for those who face it.<br>
+                The Block is all powerful, the block is all knowing, the block is hollow and the block is empty.
+                <br> The block is angry, the block is ignorant and the block ...
+                <br> The Block is evil.
+                <br> When humanity perceive the block; they fear it, and they wish it away.
+                <br> However, unlike the evils familiar and excite, the block does not hide in the shadows but in the mundane.
+                <br> Humanity was, is, and forever will be in reach of the block and they will forever turn their gaze away.
+                <br> As it's evil slowly creeps: cowards pray that fate has it the block saves it's evils for those it face.
+                <br>
                 <br> You are but a coward... look away and run
                 <br> It's motherfucking block
+                <br>
+                <br> St. Octagon 4:20
             </p>
         </div>
         <div class="child instructions">

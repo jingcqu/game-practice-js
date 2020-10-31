@@ -5,9 +5,21 @@
     font-family: "Times New Roman", Times, serif;
 }
 
-.container {
+.control-panel {
     width: 100%;
-    text-align: center
+    text-align: center;
+    height: 20%;
+}
+
+button {
+    width: 10%;
+    background-color: black;
+    color: white;
+}
+
+.placeEvil {
+    background-color: red;
+    color: black;
 }
 
 .lore {
@@ -19,12 +31,13 @@
     background-color: aliceblue;
     border: 50px;
     float: left;
-    margin-left: 25%;
+    margin-left: 23.3%;
 }
 
 canvas {
     background-color: aliceblue;
     margin: auto;
+    border: 3px double black;
 }
 
 body {
@@ -47,10 +60,14 @@ body {
     background-color: aliceblue;
     border: 50px;
     float: right;
-    margin-right: 25%;
+    margin-right: 23.3%;
 }
 
 body {
     width: 100%;
     text-align: center;
+}
+
+.child {
+    border: 3px double black;
 }
