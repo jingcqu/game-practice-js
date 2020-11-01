@@ -22,6 +22,7 @@ var evil = {
     }
     /** ---------Graph-------------- */
 class Node {
+
     constructor(xPos, yPos) {
         this.available = true;
         this.isLight = false;
@@ -33,6 +34,7 @@ class Node {
         this.right = null;
         this.x = xPos;
         this.y = yPos;
+        this.visited = false;
     }
 
     makeUnavailable() {
@@ -67,6 +69,9 @@ class Node {
     }
     turnOffTarget() {
         this.isTarget = false;
+    }
+    getNeighbors() {
+        return [this.top, this.bottom, this.left, this.right]
     }
 }
 
@@ -139,7 +144,132 @@ var boardGraph = {
         }
     },
     dijkstra: function() {
+        class superNode {
+            constructor(node, dist) {
+                this.node = node;
+                this.prevPathNode = node;
+                this.dist = dist;
+                this.index = null;
+            }
+            equalTo(sNode) {
+                return (this.node.x === sNode.node.x) && (this.node.y === this.node.y)
+            }
+        }
 
+        var minBinQueue = {
+                make: function() {
+                    this.top = null;
+                    this.collection = [];
+                    this.numNodes = 0;
+                },
+                push: function(sNode) { //---------This is fucked------------------------------*------------fixed
+                    console.log("pushing; ", sNode.dist)
+                    if (this.top === null) {
+                        this.top = sNode
+                        sNode.index = 0
+                        this.collection.push(sNode)
+                        this.numNodes += 1;
+                        for (let i = 0; i < this.collection.length; i++) {
+                            console.log(this.collection[i].dist)
+                        }
+                        return
+                    }
+                    this.collection.push(sNode)
+                    let i = this.collection.length - 1
+                    this.collection[i].index = this.collection.length - 1
+                    while ((Math.ceil(i / 2) - 1) >= 0) {
+                        let j = Math.ceil(i / 2) - 1
+                            //console.log(i, j)
+                        if (sNode.dist < this.collection[j].dist) {
+                            let temp = this.collection[j]
+                            console.log("temp:", temp)
+                            this.collection[j] = this.collection[i]
+                            this.collection[i] = temp
+                            this.collection[j].index = j
+                            this.collection[i].index = i
+                        } else {
+                            break;
+                        }
+                        i = j
+                    }
+                    this.numNodes += 1;
+                    for (let i = 0; i < this.collection.length; i++) {
+                        console.log(this.collection[i].dist)
+                    }
+                },
+                pop: function() {
+                    retNode = this.collection[0]
+                    this.numNodes -= 1;
+                    this.collection[0] = this.collection[this.collection.length - 1]
+                    this.collection.pop()
+                        // --- weigh down------------
+                    let i = 0
+                    this.collection[0].index = 0;
+                    while (((i * 2) + 1) < this.collection.length) { //-----------------------fucked-------------------------*fixed
+                        let left = (i * 2) + 1
+                        let right = (i * 2) + 2
+                        let j = 0
+                        if (this.collection[i].dist > this.collection[left].dist) {
+                            if (this.collection[i].dist > this.collection[right].dist) {
+                                if (this.collection[left].dist > this.collection[right].dist) {
+                                    j = right
+                                } else {
+                                    j = left
+                                }
+                            } else {
+                                j = left
+                            }
+                        } else {
+                            break
+                        }
+                        this.collection[i].index = j
+                        this.collection[j].index = i
+                        let temp = this.collection[i]
+                        this.collection[i] = this.collection[j]
+                        this.collection[j] = temp
+                        i = j
+                    }
+                    return retNode
+                },
+                isEmpty: function() {
+                    return this.numNodes === 0;
+                }
+            }
+            /*//-----------------test----------------------------------------------------------
+
+        console.log("push test")
+        testArray = [15, 24, 321, 1, 3, 632, 32, 642, 342, 2, 3, 5, 8, 10]
+        minBinQueue.make()
+        for (let i = 0; i < testArray.length; i++) {
+            newSNode = new superNode(null, testArray[i])
+            minBinQueue.push(newSNode)
+        }
+        for (let i = 0; i < minBinQueue.collection.length; i++) {
+            console.log(minBinQueue.collection[i].dist)
+        }
+        console.log("pop test")
+        minBinQueue.pop()
+        for (let i = 0; i < minBinQueue.collection.length; i++) {
+            console.log(minBinQueue.collection[i].dist)
+        }
+
+        //---------------end of test----------------------------------------------*/
+            //---------dijkstras----------------
+        var found = false;
+        source = this.collection[posToCol(evil.x, evil.y)]
+        source.visited = true
+        minBinQueue.make()
+        sourcesNode = new superNode(source, 0)
+        minBinQueue.push(sourcesNode)
+        targgetNode = null
+        updated = false
+        while ((minBinQueue.isEmpty() === false)) {
+            curr = minBinQueue.pop()
+        }
+        return {
+            isFound: found,
+            node: targgetNode
+        }; //*/
     },
     astar: function() {
 
