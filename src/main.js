@@ -362,7 +362,7 @@ function viewPathButton() {
 }
 
 var boardGraph = {
-    make: function(width, height, lightList) { //--------------fucked
+    make: function(width, height, lightList) { //--------------fucked----------------------fixed
         console.log("enter make board graph")
         this.collection = [];
         console.log(width)
@@ -667,12 +667,83 @@ var boardGraph = {
 
     },
     bfs: function() {
+        class nodeContainer {
+            constructor(node) {
+                this.node = node
+                this.prev = null
+            }
+        }
+        var llQueue = {
+            make: function() {
+                this.head = null
+                this.tail = null
+                this.len = 0
+            },
+            push: function(node) {
+                this.len += 1
+                cNode = new nodeContainer(node)
+                if (this.head === null) {
+                    this.head = cNode
+                    this.tail = cNode
+                    return
+                }
+                this.head.prev = cNode
+                this.head = cNode
+            },
+            pop: function() {
+                if (this.len === 0) {
+                    return null
+                }
+                retNode = this.tail
+                this.tail = this.tail.prev
+                if (this.tail == null) {
+                    this.head = null
+                }
+                this.len -= 0
+                return retNode
+            },
+            isEmpty: function() {
+                return this.len === 0
+            }
+        }
+        llQueue.make()
+        var found = false;
+        var targetNode = null
+        source = this.collection[posToCol(evil.x, evil.y)]
+        source.visited = true
+        sourceCont = new nodeContainer(source)
+        llQueue.push(source)
+        while ((llQueue.isEmpty() === false) && (found === false)) {
+            curr = llQueue.pop()
+            neighbors = curr.node.getNeighbors()
+            for (let i = 0; i < neighbors.length; i++) {
+                if (neighbors[i] != null) {
+                    if (neighbors[i].isAvailable()) {
+                        if (neighbors[i].visited === false) {
+                            neighbors[i].visited = true
+                            newNode = new nodeContainer(neighbors[i])
+                            newNode.prev = curr
+                            if (newNode.node.isTarget) {
+                                found = true;
+                                targetNode = newNode
+                                break
+                            }
+                            llQueue.push(newNode)
+                        }
+                    }
+                }
+            }
+        }
 
+        //------------print the path found by bfs---------------------------------------------
+
+        //-------------done printing bfs --------------------------------------------------------
     },
     grassfire: function() {
 
     },
     dfs: function() {
+
 
     },
     pathing: function(strategy) {
