@@ -34,9 +34,10 @@ class Node {
         this.right = null;
         this.x = xPos;
         this.y = yPos;
+        // values for algorithem -> objects that are reset with undoGraph()
         this.visited = false;
         this.dist = null;
-        this.index = null;
+        this.index = null; //index in minQueue
         this.prevNode = null;
         // following variables for Astar
         this.heuristic = null;
@@ -599,10 +600,10 @@ var boardGraph = {
                                 minBinQueue.updateNode(neighbors[i].index, curr.dist + 1)
                             }
                         }
-
+                        /*
                         if ((view === true)) {
                             this.viewPathing(neighbors[i])
-                        }
+                        }//*/
                     }
                 }
             }
@@ -664,9 +665,10 @@ var boardGraph = {
                                 minBinQueue.updateNode(neighbors[i].index, neighbors[i].heuristic + neighbors[i].distTraveled);
                             }
                         }
+                        /*
                         if ((view === true)) {
                             this.viewPathing(neighbors[i])
-                        }
+                        }//*/
                     }
                 }
             }
@@ -719,30 +721,37 @@ var boardGraph = {
     },
     bfsIteration: function(view) {
         var curr = llQueue.pop()
-            //console.log("popped: ", curr.node)
-        let neighbors = curr.node.getNeighbors()
+            //console.log("popped: ", curr)
+        let neighbors = curr.node.getNeighbors();
         for (let i = 0; i < neighbors.length; i++) {
             if (neighbors[i] != null) {
+                //console.log("not null", neighbors[i])
                 if (neighbors[i].isAvailable()) {
+                    //console.log("isAvailable", neighbors[i].isAvailable())
                     if (neighbors[i].visited === false) {
-                        neighbors[i].visited = true
-                        let newNode = new this.nodeContainer(neighbors[i])
-                        newNode.node.prevNode = curr.node
-                        newNode.node.dist = curr.node.dist + 1
+                        console.log("is not visited", neighbors[i].visited)
+                        neighbors[i].visited = true;
+                        let newNode = new this.nodeContainer(neighbors[i]);
+                        newNode.node.prevNode = curr.node;
+                        newNode.node.dist = curr.node.dist + 1;
                         if (newNode.node.isTarget) {
-                            console.log("found")
+                            //console.log("found")
                             found = true;
-                            targetNode = newNode
-                            break
+                            targetNode = newNode;
+                            break;
                         }
-                        llQueue.push(newNode)
-                            //console.log("pushing: ", newNode)
+                        llQueue.push(newNode);
+                        //console.log("pushing: ", newNode)
+                        /*
                         if ((view === true)) {
                             this.viewPathing(neighbors[i])
-                        }
+                        }//*/
                     }
                 }
             }
+        }
+        if (view) {
+            this.viewPathing()
         }
     },
     bfs: function(view = false) {
@@ -752,23 +761,41 @@ var boardGraph = {
         llQueue = new this.Queue();
         found = false;
         targetNode = null;
-        source = this.collection[posToCol(evil.x, evil.y)];
+        let source = this.collection[posToCol(evil.x, evil.y)];
         source.visited = true;
         source.dist = 0;
-        maxDist = 0;
-        sourceCont = new this.nodeContainer(source);
+        let sourceCont = new this.nodeContainer(source);
         llQueue.push(sourceCont);
         //-------------------clean up----------------------------------
 
         let numIterations = 0
 
         while ((llQueue.isEmpty() === false) && (found === false)) {
+            console.log(numIterations)
             this.bfsIteration(false)
             numIterations += 1
         }
+        //
         if (view) { //-------get number of iterations required then printing pathing at each iteration
+            console.log("view on")
+            this.undoGraph()
+            llQueue = null
+            llQueue = new this.Queue();
 
-        }
+            found = false;
+            targetNode = null;
+            source = this.collection[posToCol(evil.x, evil.y)];
+            source.visited = true;
+            source.dist = 0;
+            sourceCont = new this.nodeContainer(source);
+            llQueue.push(sourceCont);
+            for (let i = 0; i < numIterations; i++) {
+                console.log(i, numIterations)
+                setTimeout(() => {
+                    this.bfsIteration(true)
+                }, (i + 1) * 50);
+            }
+        } //*/
 
 
         //------------print the path found by bfs---------------------------------------------
@@ -817,9 +844,10 @@ var boardGraph = {
                                 llQueue.push(newNode)
                                     //console.log("pushing: ", newNode)
                             }
+                            /*
                             if ((view === true)) {
                                 this.viewPathing(neighbors[i])
-                            }
+                            }//*/
                         }
                     }
                 }
@@ -895,9 +923,10 @@ var boardGraph = {
                             }
                             stack.push(neighbors[i])
                             console.log("pushing: ", neighbors[i])
-                            if ((view === true)) {
-                                this.viewPathing(neighbors[i])
-                            }
+                                /*
+                                if ((view === true)) {
+                                    this.viewPathing(neighbors[i])
+                                }//*/
                         }
                     }
                 }
@@ -935,26 +964,26 @@ var boardGraph = {
                 break;
         }
     },
-    viewPathing: function(node) {
-        if (node != null) {
-            if (node.dist > this.maxDist) {
-                this.maxDist = node.dist
-            }
-            ctx = myCanvas.canvas.getContext("2d")
-            if (this.maxDist === 0) {
-                ctx.fillStyle = "rgb(0,255,0)"
-                ctx.fillRect(node.x * cellLength, node.y * cellLength, cellLength, cellLength)
-            } else {
-                for (let i = 0; i < this.collection.length; i++) {
-                    if ((this.collection[i].visited === true) && (this.collection[i].isSource === false) && (this.collection[i].isTarget == false)) {
-                        ctx.fillStyle = `rgb(
-                            0,
-                            ${Math.floor(255-(this.collection[i].dist/(this.maxDist))*255)},
-                            0)`;
-                        ctx.fillRect(this.collection[i].x * cellLength, this.collection[i].y * cellLength, cellLength, cellLength);
-                    }
+    viewPathing: function() {
+
+        ctx = myCanvas.canvas.getContext("2d")
+        for (let i = 0; i < this.collection.length; i++) {
+            if ((this.collection[i].visited === true) && (this.collection[i].isSource === false) && (this.collection[i].isTarget == false)) {
+                if (this.collection[i].dist > this.maxDist) {
+                    this.maxDist = this.collection[i].dist
                 }
             }
+        }
+
+        for (let i = 0; i < this.collection.length; i++) {
+            if ((this.collection[i].visited === true) && (this.collection[i].isSource === false) && (this.collection[i].isTarget == false)) {
+                ctx.fillStyle = `rgb(
+                    0,
+                    ${Math.floor(255-(this.collection[i].dist/(this.maxDist))*255)},
+                    0)`;
+                ctx.fillRect(this.collection[i].x * cellLength, this.collection[i].y * cellLength, cellLength, cellLength);
+            }
+
 
         }
     },
@@ -970,6 +999,19 @@ var boardGraph = {
                 console.log(curr.x * cellLength, curr.y * cellLength, cellLength, cellLength)
                 ctx.fillRect(curr.x * cellLength, curr.y * cellLength, cellLength, cellLength)
                 curr = curr.prevNode
+            }
+        }
+    },
+    undoGraph: function() {
+        for (let i = 0; i < this.collection.length; i++) {
+            if (this.collection[i].isAvailable()) {
+                this.collection[i].visited = false;
+                this.collection[i].dist = null;
+                this.collection[i].heuristic = null;
+                this.collection[i].distTraveled = null;
+                this.collection[i].index = null;
+                this.collection[i].prevNode = null;
+                this.maxDist = 0
             }
         }
     }
