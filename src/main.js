@@ -546,6 +546,35 @@ var boardGraph = {
             }
         }
     },
+    dijkstraIteration: function(view) {
+        curr = minBinQueue.pop()
+        console.log(minBinQueue.numNodes, curr)
+        neighbors = curr.getNeighbors()
+        for (let i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] != null) {
+                if (neighbors[i].isAvailable()) {
+                    if (neighbors[i].visited === false) {
+                        neighbors[i].prevNode = curr
+                        neighbors[i].dist = curr.dist + 1
+                        minBinQueue.push(neighbors[i])
+                        neighbors[i].visited = true
+                        if (neighbors[i].isTarget) {
+                            found = true
+                            targetNode = neighbors[i]
+                        }
+                    } else if (neighbors.index != null) {
+                        if ((curr.dist + 1) < neighbors[i].dist) {
+                            neighbors[i].prevNode = curr
+                            minBinQueue.updateNode(neighbors[i].index, curr.dist + 1)
+                        }
+                    }
+                }
+            }
+        }
+        if (view) {
+            this.viewPathing()
+        }
+    },
     dijkstra: function(view = false) {
         /**
          * view - boolean value one whether this is for view pathing
@@ -554,68 +583,77 @@ var boardGraph = {
             //---------dijkstras----------------
         found = false;
         source = this.collection[posToCol(evil.x, evil.y)]
-
-        //console.log("x:", evil.x)
-        //console.log("y:", evil.y)
-        //console.log("source:", source)
-        //console.log("index:", posToCol(evil.x, evil.y))
-        source.visited = true
-            //minBinQueue.make()
-
-        source.dist = 0
-        minBinQueue.push(source)
-        targetNode = null
-        updated = false
+        source.visited = true;
+        source.dist = 0;
+        minBinQueue.push(source);
+        targetNode = null;
+        let numIterations = 0;
         while ((minBinQueue.isEmpty() === false)) {
-            curr = minBinQueue.pop()
-            console.log(minBinQueue.numNodes, curr)
-                //-----------------------------------------------------
-            neighbors = curr.getNeighbors()
-                //console.log("wrapper dist", curr.dist)
-            for (let i = 0; i < neighbors.length; i++) {
-                if (neighbors[i] != null) {
-                    if (neighbors[i].isAvailable()) {
-                        if (neighbors[i].visited === false) {
-                            //console.log(neighbors[i])
-                            neighbors[i].prevNode = curr
-                                //console.log("inner dist", curr.dist + 1)
-                            neighbors[i].dist = curr.dist + 1
-                            minBinQueue.push(neighbors[i])
-                            neighbors[i].visited = true
-                                /*    //------------------------------------test
-                                pn = neighbors[i]
-                                ctx = myCanvas.canvas.getContext("2d")
-                                if ((pn != null) && (pn.isSource == false)) {
-                                    ctx.fillStyle = "green"
-                                    ctx.fillRect(pn.x * 20, pn.y * 20, 20, 20)
-                                }
-                                //---------------------------------------------------*/
-                            if (neighbors[i].isTarget) {
-                                found = true
-                                targetNode = neighbors[i]
-                            }
-                        } else if (neighbors.index != null) {
-                            if ((curr.dist + 1) < neighbors[i].dist) {
-                                neighbors[i].prevNode = curr
-                                minBinQueue.updateNode(neighbors[i].index, curr.dist + 1)
-                            }
-                        }
-                        /*
-                        if ((view === true)) {
-                            this.viewPathing(neighbors[i])
-                        }//*/
-                    }
-                }
+            this.dijkstraIteration(false);
+            numIterations += 1;
+        }
+        if (view) {
+            this.undoGraph()
+            minBinQueue = new this.minQueue()
+            found = false;
+            source = this.collection[posToCol(evil.x, evil.y)]
+            source.visited = true;
+            source.dist = 0;
+            minBinQueue.push(source);
+            targetNode = null;
+            for (let i = 0; i < numIterations; i++) {
+                setTimeout(() => {
+                    this.dijkstraIteration(view)
+                }, (i + 1) * 20);
             }
+            setTimeout(() => {
+                this.printPath(targetNode)
+            }, (numIterations + 1) * 20);
         }
         //--------------------draw path---------------------------
         //console.log("targetNode", targetNode)
         //console.log("target position", targetNode.isTarget)
-        this.printPath(targetNode)
         return {
             isFound: found,
             node: targetNode
         }; //*/
+    },
+    astarHeuristic: function(node1, node2) {
+        return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y)
+    },
+    astarIteration: function(view) {
+        curr = minBinQueue.pop()
+        neighbors = curr.getNeighbors()
+        for (let i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] != null) {
+                if (neighbors[i].isAvailable()) {
+                    if (neighbors[i].visited === false) {
+                        neighbors[i].prevNode = curr;
+                        neighbors[i].distTraveled = curr.distTraveled + 1;
+                        neighbors[i].heuristic = this.astarHeuristic(neighbors[i], target);
+                        neighbors[i].dist = neighbors[i].heuristic + neighbors[i].distTraveled;
+                        neighbors[i].visited = true;
+                        minBinQueue.push(neighbors[i]);
+                        if (neighbors[i].isTarget) {
+                            found = true;
+                            targetNode = neighbors[i];
+                        }
+                    } else if (neighbors.index != null) {
+                        if ((curr.distTraveled + 1) < neighbors[i].distTraveled) {
+                            neighbors[i].distTraveled = curr.distTraveled + 1;
+                            minBinQueue.updateNode(neighbors[i].index, neighbors[i].heuristic + neighbors[i].distTraveled);
+                        }
+                    }
+                    /*
+                    if ((view === true)) {
+                        this.viewPathing(neighbors[i])
+                    }//*/
+                }
+            }
+        }
+        if (view) {
+            this.viewPathing()
+        }
     },
     astar: function(view = false) {
         /**
@@ -626,55 +664,51 @@ var boardGraph = {
          * (xc,yc) being the coordinates of the node ur getting the heuristic of and (xt,yt)
          * being the coodinates of the target/player ) too accurate considering that 
          * the distance is so predicatable however this will serve as a good proof of concept
+         * It will always be an underestimate due to obstacles
          */
-
-        function getHeuristic(node1, node2) {
-            return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y)
-        }
-        var found = false;
+        found = false;
         source = this.collection[posToCol(evil.x, evil.y)];
         source.visited = true;
         target = this.collection[posToCol(player.x, player.y)];
-        var minBinQueue = new this.minQueue();
+        minBinQueue = new this.minQueue();
         targetNode = null;
         updated = false;
         source.distTraveled = 0;
-        source.heuristic = getHeuristic(source, target);
+        source.heuristic = this.astarHeuristic(source, target);
         source.dist = source.distTraveled + source.heuristic;
         minBinQueue.push(source);
+        let numIterations = 0;
         while (minBinQueue.isEmpty() === false) {
-            curr = minBinQueue.pop()
-            neighbors = curr.getNeighbors()
-            for (let i = 0; i < neighbors.length; i++) {
-                if (neighbors[i] != null) {
-                    if (neighbors[i].isAvailable()) {
-                        if (neighbors[i].visited === false) {
-                            neighbors[i].prevNode = curr;
-                            neighbors[i].distTraveled = curr.distTraveled + 1;
-                            neighbors[i].heuristic = getHeuristic(neighbors[i], target);
-                            neighbors[i].dist = neighbors[i].heuristic + neighbors[i].distTraveled;
-                            neighbors[i].visited = true;
-                            minBinQueue.push(neighbors[i]);
-                            if (neighbors[i].isTarget) {
-                                found = true;
-                                targetNode = neighbors[i];
-                            }
-                        } else if (neighbors.index != null) {
-                            if ((curr.distTraveled + 1) < neighbors[i].distTraveled) {
-                                neighbors[i].distTraveled = curr.distTraveled + 1;
-                                minBinQueue.updateNode(neighbors[i].index, neighbors[i].heuristic + neighbors[i].distTraveled);
-                            }
-                        }
-                        /*
-                        if ((view === true)) {
-                            this.viewPathing(neighbors[i])
-                        }//*/
-                    }
-                }
-            }
-
+            this.astarIteration(false)
+            numIterations += 1
         }
-        this.printPath(targetNode);
+        if (view) {
+            this.undoGraph()
+            found = false
+            source = this.collection[posToCol(evil.x, evil.y)];
+            source.visited = true;
+            target = this.collection[posToCol(player.x, player.y)];
+            minBinQueue = new this.minQueue();
+            targetNode = null;
+            updated = false;
+            source.distTraveled = 0;
+            source.heuristic = this.astarHeuristic(source, target);
+            source.dist = source.distTraveled + source.heuristic;
+            minBinQueue.push(source);
+            for (let i = 0; i < numIterations; i++) {
+                setTimeout(() => {
+                    this.astarIteration(true)
+                }, (i + 1) * 20);
+            }
+        }
+        if (view) {
+            setTimeout(() => {
+                if (targetNode != null) {
+                    this.printPath(targetNode);
+                }
+            }, (numIterations + 1) * 20);
+        }
+
         return {
             isFound: found,
             node: targetNode
@@ -779,7 +813,6 @@ var boardGraph = {
         if (view) { //-------get number of iterations required then printing pathing at each iteration
             console.log("view on")
             this.undoGraph()
-            llQueue = null
             llQueue = new this.Queue();
 
             found = false;
@@ -793,20 +826,54 @@ var boardGraph = {
                 console.log(i, numIterations)
                 setTimeout(() => {
                     this.bfsIteration(true)
-                }, (i + 1) * 50);
+                }, (i + 1) * 20);
             }
         } //*/
 
-
         //------------print the path found by bfs---------------------------------------------
-        if (targetNode != null) {
-            targetNode = targetNode.node
-            this.printPath(targetNode)
+        if (view) {
+            setTimeout(() => {
+                if (targetNode != null) {
+                    console.log(targetNode)
+                    console.log(found)
+                    targetNode = targetNode.node
+                    this.printPath(targetNode)
+                }
+            }, (numIterations + 1) * 20);
         }
         //-------------done printing bfs --------------------------------------------------------
         return {
             isFound: found,
             node: targetNode
+        }
+    },
+    grassfireIteration: function(view) {
+        let curr = llQueue.pop()
+            //console.log("popped: ", curr.node)
+        let neighbors = curr.node.getNeighbors()
+        for (let i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] != null) {
+                if (neighbors[i].isAvailable()) {
+                    if (neighbors[i].visited === false) {
+
+                        /***********view pathing code here */
+                        neighbors[i].visited = true
+                        let newNode = new this.nodeContainer(neighbors[i])
+                        if (newNode.node.isSource) {
+                            console.log("found")
+                            found = true;
+                            sourceNode = newNode
+                        } else {
+                            newNode.node.prevNode = curr.node
+                            newNode.node.dist = curr.node.dist + 1
+                            llQueue.push(newNode)
+                        }
+                    }
+                }
+            }
+        }
+        if (view) {
+            this.viewPathing(true)
         }
     },
     grassfire: function(view = false) {
@@ -815,125 +882,147 @@ var boardGraph = {
          */
         target = this.collection[posToCol(player.x, player.y)]
         llQueue = new this.Queue()
-        var found = false;
-        var sourceNode = null
+        found = false;
+        sourceNode = null
         target.visited = true
         target.dist = 0
         maxDist = 0
         targetCont = new this.nodeContainer(target)
         llQueue.push(targetCont)
+        let numIterations = 0
         while ((llQueue.isEmpty() === false)) {
-            curr = llQueue.pop()
-                //console.log("popped: ", curr.node)
-            neighbors = curr.node.getNeighbors()
-            for (let i = 0; i < neighbors.length; i++) {
-                if (neighbors[i] != null) {
-                    if (neighbors[i].isAvailable()) {
-                        if (neighbors[i].visited === false) {
-
-                            /***********view pathing code here */
-                            neighbors[i].visited = true
-                            let newNode = new this.nodeContainer(neighbors[i])
-                            if (newNode.node.isSource) {
-                                //console.log("found")
-                                found = true;
-                                sourceNode = newNode
-                            } else {
-                                newNode.node.prevNode = curr.node
-                                newNode.node.dist = curr.node.dist + 1
-                                llQueue.push(newNode)
-                                    //console.log("pushing: ", newNode)
+            this.grassfireIteration(false)
+            numIterations += 1
+        }
+        if (view) {
+            this.undoGraph()
+            target = this.collection[posToCol(player.x, player.y)]
+            llQueue = new this.Queue()
+            found = false;
+            sourceNode = null
+            target.visited = true
+            target.dist = 0
+            maxDist = 0
+            targetCont = new this.nodeContainer(target)
+            llQueue.push(targetCont)
+            for (let j = 0; j < numIterations; j++) {
+                console.log("numiterations:", numIterations)
+                setTimeout(() => {
+                    this.grassfireIteration(view)
+                }, ((j + 1) * 20));
+            }
+            setTimeout(() => {
+                console.log("numIterations - printing:", numIterations)
+                if (sourceNode.node != null) {
+                    var path = []
+                    let curr = sourceNode.node
+                    path.push(curr)
+                    while ((curr.isTarget === false)) {
+                        //console.log("looping", curr.dist)
+                        let neighbors = curr.getNeighbors()
+                        minDist = Number.MAX_VALUE
+                        minInd = -1
+                        for (let i = 0; i < neighbors.length; i++) {
+                            if (neighbors[i] != null) {
+                                if (neighbors[i].isAvailable()) {
+                                    if (neighbors[i].isTarget) {
+                                        minInd = i
+                                        break
+                                    } else if ((neighbors[i].dist < minDist) && (neighbors[i].dist != null)) {
+                                        minDist = neighbors[i].dist
+                                        minInd = i
+                                    }
+                                }
                             }
+                        }
+                        if (minInd == -1) {
+                            break
+                        }
+                        curr = neighbors[minInd]
+                        curr.prevNode = path[path.length - 1]
+                        path.push(curr)
+                    }
+                    this.printPath(path[path.length - 1])
+                }
+            }, (numIterations + 1) * 20); //*/
+        }
+
+        return {
+            isFound: found,
+            node: target
+        }
+    },
+    dfsIteration: function(view) {
+        curr = stack.pop()
+            //console.log("popped: ", curr)
+        neighbors = curr.getNeighbors()
+        for (let i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] != null) {
+                if (neighbors[i].isAvailable()) {
+                    if (neighbors[i].visited === false) {
+                        neighbors[i].visited = true
+                        neighbors[i].prevNode = curr
+                        neighbors[i].dist = curr.dist + 1
+                            /**update max dist for case of viewing pathing */
+                        if (neighbors[i].isTarget) {
+                            //console.log("found")
+                            found = true;
+                            targetNode = neighbors[i]
+                            break
+                        }
+                        stack.push(neighbors[i])
+                            //console.log("pushing: ", neighbors[i])
                             /*
                             if ((view === true)) {
                                 this.viewPathing(neighbors[i])
                             }//*/
-                        }
                     }
                 }
             }
         }
-
-        if (sourceNode.node != null) {
-            /***special printing and getting path for grassfire*/
-            var path = []
-            curr = sourceNode.node
-            path.push(curr)
-            while ((curr.isTarget === false)) {
-                //console.log("looping", curr.dist)
-                let neighbors = curr.getNeighbors()
-                minDist = Number.MAX_VALUE
-                minInd = -1
-                for (let i = 0; i < neighbors.length; i++) {
-                    if (neighbors[i] != null) {
-                        if (neighbors[i].isAvailable()) {
-                            if (neighbors[i].isTarget) {
-                                minInd = i
-                                break
-                            } else if ((neighbors[i].dist < minDist) && (neighbors[i].dist != null)) {
-                                minDist = neighbors[i].dist
-                                minInd = i
-                            }
-                        }
-                    }
-                }
-                if (minInd == -1) {
-                    break
-                }
-                curr = neighbors[minInd]
-                curr.prevNode = path[path.length - 1]
-                path.push(curr)
-            }
-            this.printPath(path[path.length - 1])
-        }
-        return {
-            isFound: found,
-            node: target
+        if (view) {
+            this.viewPathing()
         }
     },
     dfs: function(view = false) {
         /**
          * view - boolean value one whether this is for view pathing
          */
-        var stack = []
-        var found = false
-        var targetNode = null
+        stack = []
+        found = false
+        targetNode = null
         source = this.collection[posToCol(evil.x, evil.y)]
         source.visited = true
         source.dist = 0
         maxDist = 0
         stack.push(source)
+        let numIterations = 0
         while ((stack.length != 0) && (found === false)) {
-            curr = stack.pop()
-            console.log("popped: ", curr)
-            neighbors = curr.getNeighbors()
-            for (let i = 0; i < neighbors.length; i++) {
-                if (neighbors[i] != null) {
-                    if (neighbors[i].isAvailable()) {
-                        if (neighbors[i].visited === false) {
-                            neighbors[i].visited = true
-                            neighbors[i].prevNode = curr
-                            neighbors[i].dist = curr.dist + 1
-                                /**update max dist for case of viewing pathing */
-                            if (neighbors[i].isTarget) {
-                                console.log("found")
-                                found = true;
-                                targetNode = neighbors[i]
-                                break
-                            }
-                            stack.push(neighbors[i])
-                            console.log("pushing: ", neighbors[i])
-                                /*
-                                if ((view === true)) {
-                                    this.viewPathing(neighbors[i])
-                                }//*/
-                        }
-                    }
-                }
+            this.dfsIteration(false)
+            numIterations += 1
+        }
+
+        if (view) {
+            this.undoGraph()
+            stack = []
+            found = false
+            targetNode = null
+            source = this.collection[posToCol(evil.x, evil.y)]
+            source.dist = 0
+            maxDist = 0
+            stack.push(source)
+            for (let i = 0; i < numIterations; i++) {
+                setTimeout(() => {
+                    this.dfsIteration(true)
+                }, (i + 1) * 20);
             }
         }
-        if (targetNode != null) {
-            this.printPath(targetNode)
+        if (view) {
+            setTimeout(() => {
+                if (targetNode != null) {
+                    this.printPath(targetNode)
+                }
+            }, (numIterations + 1) * 20);
         }
         return {
             isFound: found,
@@ -964,7 +1053,7 @@ var boardGraph = {
                 break;
         }
     },
-    viewPathing: function() {
+    viewPathing: function(gf = false) {
 
         ctx = myCanvas.canvas.getContext("2d")
         for (let i = 0; i < this.collection.length; i++) {
@@ -977,14 +1066,20 @@ var boardGraph = {
 
         for (let i = 0; i < this.collection.length; i++) {
             if ((this.collection[i].visited === true) && (this.collection[i].isSource === false) && (this.collection[i].isTarget == false)) {
-                ctx.fillStyle = `rgb(
-                    0,
-                    ${Math.floor(255-(this.collection[i].dist/(this.maxDist))*255)},
-                    0)`;
+
+                if (gf) {
+                    ctx.fillStyle = `rgb(
+                        ${Math.floor(255-(this.collection[i].dist/(this.maxDist))*255)},
+                        0,
+                        ${Math.floor(255-(this.collection[i].dist/(this.maxDist))*255)})`;
+                } else {
+                    ctx.fillStyle = `rgb(
+                        0,
+                        ${Math.floor(255-(this.collection[i].dist/(this.maxDist))*255)},
+                        0)`;
+                }
                 ctx.fillRect(this.collection[i].x * cellLength, this.collection[i].y * cellLength, cellLength, cellLength);
             }
-
-
         }
     },
     printPath: function(targetNode) {
