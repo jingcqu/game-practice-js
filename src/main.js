@@ -534,15 +534,17 @@ var boardGraph = {
             return this.numNodes === 0;
         }
         updateNode(i, new_dist) {
-            //console.log("updateNode: ", this.collection[i])
-            //console.log("index", i)
-            //console.log(this.collection)
+            console.log("updateNode: ", this.collection[i])
+            console.log("index", i)
+                //console.log(this.collection)
             this.collection[i].dist = new_dist
-            let prevIndex = Math.ceil(i / 2) - 1
-            if (this.collection[i].dist < this.collection[prevIndex].dist) {
-                this.bubbleUp(i)
-            } else {
-                this.weighDown(i)
+            if (i != 0) {
+                let prevIndex = Math.ceil(i / 2) - 1
+                if (this.collection[i].dist < this.collection[prevIndex].dist) {
+                    this.bubbleUp(i)
+                } else {
+                    this.weighDown(i)
+                }
             }
         }
     },
@@ -562,10 +564,17 @@ var boardGraph = {
                             found = true
                             targetNode = neighbors[i]
                         }
-                    } else if (neighbors.index != null) {
+                    } else if (neighbors[i].index != null) {
                         if ((curr.dist + 1) < neighbors[i].dist) {
+                            //console.log("updating node")
                             neighbors[i].prevNode = curr
                             minBinQueue.updateNode(neighbors[i].index, curr.dist + 1)
+                        }
+                    } else if (neighbors[i].dist != null) {
+                        if ((curr.dist + 1) < neighbors[i].dist) {
+                            neighbors[i].prevNode = curr
+                            neighbors[i].dist = curr.dist + 1
+                            minBinQueue.push(neighbors[i])
                         }
                     }
                 }
@@ -619,6 +628,7 @@ var boardGraph = {
         }; //*/
     },
     astarHeuristic: function(node1, node2) {
+        console.log(node1.x, node1.y)
         return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y)
     },
     astarIteration: function(view) {
@@ -638,10 +648,19 @@ var boardGraph = {
                             found = true;
                             targetNode = neighbors[i];
                         }
-                    } else if (neighbors.index != null) {
+                    } else if (neighbors[i].index != null) {
                         if ((curr.distTraveled + 1) < neighbors[i].distTraveled) {
+                            neighbors[i].prevNode = curr
                             neighbors[i].distTraveled = curr.distTraveled + 1;
                             minBinQueue.updateNode(neighbors[i].index, neighbors[i].heuristic + neighbors[i].distTraveled);
+                        }
+                    } else if (neighbors[i].distTraveled != null) {
+                        //console.log("readmitting")
+                        if ((curr.distTraveled + 1) < neighbors[i].distTraveled) {
+                            neighbors[i].prevNode = curr
+                            neighbors[i].distTraveled = curr.distTraveled + 1
+                            neighbors[i].dist = neighbors[i].heuristic + neighbors[i].distTraveled;
+                            minBinQueue.push(neighbors[i])
                         }
                     }
                     /*
