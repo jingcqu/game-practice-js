@@ -289,7 +289,7 @@ function setLights(width, height) {
         //console.log(x);
         //console.log(y);
         //    console.log("drawing")
-        ctx.fillStyle = "yellow"
+        ctx.fillStyle = "rgb(255,255,0)"
         ctx.fillRect(x, y, cellLength, cellLength)
     }
     return lset
