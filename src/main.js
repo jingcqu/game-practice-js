@@ -14,13 +14,15 @@ var viewPath = false;
 var playerPlaced = false;
 var sourcePlaced = false;
 var evil = {
-        place: function(x, y) {
-            this.x = x
-            this.y = y
-            sourcePlaced = true
-        }
+    place: function(x, y) {
+        this.x = x
+        this.y = y
+        sourcePlaced = true
     }
-    /** ---------Graph-------------- */
+}
+
+var VIEW_PATH_RUNNING = false;
+/** ---------Graph-------------- */
 class Node {
 
     constructor(xPos, yPos) {
@@ -277,23 +279,18 @@ function setLights(width, height) {
         lset.push(cl);
     }
     //console.log("exitloop");
-    var c = document.getElementsByTagName("canvas")[0];
     //console.log(c);
-    ctx = c.getContext("2d");
+    ctx = myCanvas.canvas.getContext("2d")
 
     for (var i = 0; i < lset.length; i++) {
-        let img = new Image();
-        img.className = String(i);
-        img.src = "/assets/meLight.png";
         //console.log(img);
         let x = lset[i].getX() * cellLength;
         let y = lset[i].getY() * cellLength;
         //console.log(x);
         //console.log(y);
-        img.onload = function() {
-                ctx.drawImage(img, x, y);
-            }
-            //    console.log("drawing")
+        //    console.log("drawing")
+        ctx.fillStyle = "yellow"
+        ctx.fillRect(x, y, cellLength, cellLength)
     }
     return lset
 }
@@ -360,9 +357,10 @@ function viewPathButton() {
     viewPath = true;
     console.log("view path clicked")
 
-    if ((playerPlaced === false) || (sourcePlaced === false)) {
+    if ((playerPlaced === false) || (sourcePlaced === false) || (VIEW_PATH_RUNNING == true)) {
         return;
     }
+    VIEW_PATH_RUNNING = true
     strategy = document.getElementById("strategy").value
         //console.log(document.getElementById("strategy"))
     boardGraph.pathing(strategy)
@@ -617,6 +615,7 @@ var boardGraph = {
             }
             setTimeout(() => {
                 this.printPath(targetNode)
+                VIEW_PATH_RUNNING = false
             }, (numIterations + 1) * 20);
         }
         //--------------------draw path---------------------------
@@ -725,6 +724,7 @@ var boardGraph = {
                 if (targetNode != null) {
                     this.printPath(targetNode);
                 }
+                VIEW_PATH_RUNNING = false;
             }, (numIterations + 1) * 20);
         }
 
@@ -858,6 +858,7 @@ var boardGraph = {
                     targetNode = targetNode.node
                     this.printPath(targetNode)
                 }
+                VIEW_PATH_RUNNING = false
             }, (numIterations + 1) * 20);
         }
         //-------------done printing bfs --------------------------------------------------------
@@ -963,6 +964,7 @@ var boardGraph = {
                     }
                     this.printPath(path[path.length - 1])
                 }
+                VIEW_PATH_RUNNING = false
             }, (numIterations + 1) * 20); //*/
         }
 
@@ -1041,6 +1043,7 @@ var boardGraph = {
                 if (targetNode != null) {
                     this.printPath(targetNode)
                 }
+                VIEW_PATH_RUNNING = false
             }, (numIterations + 1) * 20);
         }
         return {
